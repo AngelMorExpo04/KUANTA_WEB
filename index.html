@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuanta Web - Finanzas Personales</title>
+  
+  <!-- Tailwind CSS v4 via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  
+  <!-- Fonts: Plus Jakarta Sans & Material Symbols Outlined -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  
+  <!-- Chart.js for High-Quality Interactive Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Simple custom styles to complement Tailwind */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 20px;
+    }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-[#0B0B0C] dark:text-slate-100 flex items-center justify-center">
+
+  <!-- Main Container: Styled to look like a premium standalone app on Desktop, full-bleed on Mobile -->
+  <div id="appContainer" class="w-full h-full max-w-md bg-white border border-slate-100 shadow-2xl overflow-hidden flex flex-col relative transition-all duration-200 dark:bg-[#0F0F10] dark:border-zinc-800 md:rounded-3xl md:h-[840px] md:my-auto">
+    
+    <!-- Top Status / Header -->
+    <header class="px-6 pt-6 pb-2 flex justify-between items-center bg-transparent shrink-0">
+      <div>
+        <p id="topMonthYearLabel" class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">Resumen mensual</p>
+        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kuanta <span class="text-xs font-semibold px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 dark:border-zinc-800 dark:text-zinc-400">Web</span></h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Notification Indicator -->
+        <button id="alertIndicatorBtn" class="relative p-1.5 rounded-full border border-slate-100 bg-slate-50 dark:bg-zinc-900 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 cursor-pointer hover:bg-slate-100 transition">
+          <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+          <span id="alertDot" class="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-pulse hidden"></span>
+        </button>
+        <!-- User Avatar -->
+        <div class="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center">
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300">JD</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWS (Scrollable viewports representing ViewModel State) -->
+    <main id="mainViewport" class="flex-1 overflow-y-auto px-6 py-3 space-y-5 custom-scrollbar pb-32">
+      
+      <!-- SCREEN 0: INICIO (DASHBOARD) -->
+      <div id="viewInicio" class="space-y-5 flex flex-col min-h-full">
+        
+        <!-- Savings Hero Card (Principal Visual Highlight) -->
+        <section class="bg-slate-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden transition-all dark:bg-zinc-900 dark:border dark:border-zinc-800">
+          <div class="relative z-10">
+            <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Ahorro Neto de este Mes</p>
+            <h2 id="heroSavingsVal" class="text-4xl font-black mt-2 text-emerald-400 tracking-tight">+0,00 €</h2>
+            <div class="flex flex-wrap items-center gap-2 mt-4">
+              <span id="savingRateBadge" class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-500/20">
+                0% Tasa de ahorro
+              </span>
+              <p id="heroStatusText" class="text-slate-300 text-[11px] font-semibold">Generando salud de tus finanzas</p>
+            </div>
+          </div>
+          <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        </section>
+
+        <!-- Dynamic Quick Stats Row (Balance, Ingresos, Gastos) -->
+        <section class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-50 dark:bg-zinc-900/60 border border-slate-100 dark:border-zinc-800 p-4 rounded-2xl flex flex-col justify-between h-24 transition-colors">
+            <p class="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">Balance</p>
+            <p id="statBalance" class="text-sm font-extrabold text-slate-800 dark:text-neutral-100">0,00 €</p>
+          </div>
+          <div class="bg-slate-50 dark:bg-[#122A1E]/30 border border-slate-100 dark:border-emerald-950/40 p-4 rounded-2xl flex flex-col justify-between h-24 transition-colors">
+            <p class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Ingresos</p>
+            <p id="statIncome" class="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">+0,00 €</p>
+          </div>
+          <div class="bg-slate-50 dark:bg-[#3B1F21]/30 border border-slate-100 dark:border-rose-950/40 p-4 rounded-2xl flex flex-col justify-between h-24 transition-colors">
+            <p class="text-[10px] uppercase font-bold text-rose-500 dark:text-rose-400">Gastos</p>
+            <p id="statExpenses" class="text-sm font-extrabold text-rose-500 dark:text-rose-400">-0,00 €</p>
+          </div>
+        </section>
+
+        <!-- Interactive Charts Engine (Graphical Panel tabs) -->
+        <section class="bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-2xl p-4 flex flex-col gap-4 shadow-xs">
+          <div class="flex flex-wrap gap-1 bg-slate-150 p-1 rounded-xl bg-slate-100 dark:bg-zinc-850">
+            <button onclick="changeChartTab(0)" id="btnChart0" class="flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition-all text-slate-800 bg-white shadow-xs dark:text-white dark:bg-zinc-800">
+              Gasto Diario
+            </button>
+            <button onclick="changeChartTab(1)" id="btnChart1" class="flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-zinc-200">
+              Categorías
+            </button>
+            <button onclick="changeChartTab(2)" id="btnChart2" class="flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-zinc-200">
+              Tasa Ahorro
+            </button>
+          </div>
+          
+          <!-- Chart Container View -->
+          <div class="relative w-full h-44">
+            <canvas id="liveChartJsObject"></canvas>
+          </div>
+        </section>
+
+        <!-- Brief Recent Activity Header & Feed -->
+        <section class="space-y-3">
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-zinc-500">Últimos Movimientos</h3>
+            <button onclick="navigateToTab(1)" class="text-xs font-bold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Ver todo</button>
+          </div>
+          <div id="briefTransactionsList" class="space-y-2">
+            <!-- Filled dynamically -->
+          </div>
+        </section>
+      </div>
+
+      <!-- SCREEN 1: MOVIMIENTOS (FULL LIST WITH SEARCH + FILTERS) -->
+      <div id="viewMovimientos" class="space-y-4 hidden min-h-full">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Movimientos Historicos</h2>
+          <p class="text-xs text-slate-400 dark:text-zinc-500">Busca, filtra, borra o audita tu historial completo</p>
+        </div>
+
+        <!-- Search & Type Segmented Controller -->
+        <div class="space-y-2">
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-zinc-400 text-lg">search</span>
+            <input type="text" id="searchTxInput" oninput="applyFilters()" placeholder="Buscar descripción..." class="w-full text-sm pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 focus:border-slate-300 dark:bg-zinc-900 dark:border-zinc-800 dark:focus:border-zinc-700 rounded-xl focus:outline-hidden transition-colors">
+          </div>
+          
+          <div class="flex rounded-xl bg-slate-100 dark:bg-zinc-850 p-1">
+            <button onclick="setTxFilterType('ALL')" id="filterTxAll" class="flex-1 py-1.5 rounded-lg text-xs font-extrabold transition bg-white shadow-xs text-slate-900 dark:bg-zinc-800 dark:text-white">Todos</button>
+            <button onclick="setTxFilterType('INCOME')" id="filterTxIncome" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition">Ingresos</button>
+            <button onclick="setTxFilterType('EXPENSE')" id="filterTxExpense" class="flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition">Gastos</button>
+          </div>
+        </div>
+
+        <!-- Horizontal Scroll Category Chips -->
+        <div class="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar no-scrollbar" id="categoryChipsContainer">
+          <!-- Populated dynamically: "ALL", plus each default category -->
+        </div>
+
+        <!-- Primary Transaction List viewport -->
+        <div class="space-y-2.5 pb-20" id="fullTxListContainer">
+          <!-- Placed dynamically -->
+        </div>
+      </div>
+
+      <!-- SCREEN 2: CALENDARIO -->
+      <div id="viewCalendario" class="space-y-4 hidden min-h-full">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Calendario Financiero</h2>
+          <p class="text-xs text-slate-400 dark:text-zinc-500">Descubre gastos puntuales e ingresos según el día exacto</p>
+        </div>
+
+        <!-- Dynamic Calendar Grid Widget -->
+        <div class="bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-2xl p-4 shadow-xs">
+          <!-- Calendar Custom Navigation Header -->
+          <div class="flex justify-between items-center mb-4">
+            <button onclick="navigateCalendarMonth(-1)" class="material-symbols-outlined p-1.5 bg-slate-50 dark:bg-zinc-800 border border-slate-150 dark:border-zinc-700 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-750 text-sm font-bold cursor-pointer transition">chevron_left</button>
+            <span id="calendarTitleLabel" class="text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-neutral-200">MAYO 2026</span>
+            <button onclick="navigateCalendarMonth(1)" class="material-symbols-outlined p-1.5 bg-slate-50 dark:bg-zinc-800 border border-slate-150 dark:border-zinc-700 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-750 text-sm font-bold cursor-pointer transition">chevron_right</button>
+          </div>
+
+          <!-- Weekdays Header labels -->
+          <div class="grid grid-cols-7 text-center text-[10px] font-black uppercase text-slate-400 dark:text-zinc-500 mb-2">
+            <div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div><div>Do</div>
+          </div>
+
+          <!-- Dynamic Grid Days -->
+          <div class="grid grid-cols-7 gap-y-2 text-center" id="calendarDaysGrid">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Selected Day's Transactions Display -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500" id="selectedCalendarDayTitle">Movimientos del día</h3>
+          <div id="calendarDayTxContainer" class="space-y-2">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: AJUSTES & GOALS -->
+      <div id="viewAjustes" class="space-y-5 hidden min-h-full pb-20">
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Ajustes & Configuración</h2>
+          <p class="text-xs text-slate-400 dark:text-zinc-500">Ahorros activos, personalización del sistema y respaldos</p>
+        </div>
+
+        <!-- System Settings Section Card -->
+        <div class="bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-2xl p-4 space-y-4 shadow-xs">
+          
+          <!-- Mode Slate Dark/Light Switcher Row -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-slate-400 dark:text-zinc-500">dark_mode</span>
+              <div>
+                <p class="text-sm font-bold">Modo Oscuro Minimalista</p>
+                <p class="text-[10px] text-slate-400 dark:text-zinc-500">Activa el modo de alto contraste oscuro</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="darkThemeSwitch" onchange="toggleTheme(this.checked)" class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-200 dark:bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-zinc-600 peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <hr class="border-slate-100 dark:border-zinc-800">
+
+          <!-- Sounds/Sfx Switcher Row -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-slate-400 dark:text-zinc-500">volume_up</span>
+              <div>
+                <p class="text-sm font-bold">Efectos Sonoros Sutiles</p>
+                <p class="text-[10px] text-slate-400 dark:text-zinc-500">Haptic/Audio sutil al interactuar con la app</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="soundsSwitch" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-slate-200 dark:bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-zinc-600 peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <hr class="border-slate-100 dark:border-zinc-800">
+
+          <!-- Over-spending Alerts Switcher Row -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-slate-400 dark:text-zinc-500">crisis_alert</span>
+              <div>
+                <p class="text-sm font-bold">Alertas Inteligentes de Sobre-gasto</p>
+                <p class="text-[10px] text-slate-400 dark:text-zinc-500">Notificarme si el gasto diario supera la media histórica</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="alertsSwitch" onchange="toggleAlertsSupport(this.checked)" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-slate-200 dark:bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-zinc-600 peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+        </div>
+
+        <!-- Savings Goals Panel (Objetivos de Ahorro / Metas) -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-zinc-500">Metas de Ahorro Activas</h3>
+            <button onclick="openGoalModal()" class="text-xs font-bold text-emerald-500 hover:text-emerald-400 cursor-pointer flex items-center gap-1">+ Añadir Meta</button>
+          </div>
+          
+          <!-- Active Goals scrollable panel -->
+          <div class="space-y-3" id="savingsGoalsListContainer">
+            <!-- Added dynamically -->
+          </div>
+        </div>
+
+        <!-- Actions Panel Wrapper (Export / Seed Clear) -->
+        <div class="space-y-2.5">
+          <button onclick="exportToCSV()" class="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-bold hover:bg-slate-200 dark:hover:bg-zinc-800/80 cursor-pointer transition">
+            <span class="material-symbols-outlined text-sm">download</span>
+            Exportar Todos los Datos (CSV)
+          </button>
+          <button onclick="restoreSeedData()" class="w-full flex items-center justify-center gap-2 py-3 bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/15 rounded-2xl text-[11px] font-bold cursor-pointer transition">
+            <span class="material-symbols-outlined text-sm">refresh</span>
+            Restablecer Valores Iniciales
+          </button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- BOTTOM TAB NAVIGATION (Styled identically to Material 3 / iOS modern bottom nav bar) -->
+    <nav class="absolute bottom-0 left-0 w-full bg-white/90 border-t border-slate-100/80 py-4 px-6 flex justify-between items-center z-40 backdrop-blur-md dark:bg-[#0F0F10]/95 dark:border-zinc-850/60 md:rounded-b-3xl">
+      <!-- Tab 0: Inicio -->
+      <button onclick="navigateToTab(0)" id="tabBtn0" class="flex flex-col items-center gap-1 text-slate-900 dark:text-white group cursor-pointer">
+        <div id="tabIndicator0" class="bg-slate-950 text-white rounded-full px-5 py-1 transition-all duration-200 dark:bg-white dark:text-zinc-900 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">home</span>
+        </div>
+        <span class="text-[9px] font-extrabold uppercase tracking-tighter">Inicio</span>
+      </button>
+
+      <!-- Tab 1: Stats / Movements -->
+      <button onclick="navigateToTab(1)" id="tabBtn1" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 dark:text-zinc-500 cursor-pointer group">
+        <div id="tabIndicator1" class="bg-transparent rounded-full px-5 py-1 transition-all duration-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        </div>
+        <span class="text-[9px] font-bold uppercase tracking-tighter">Movimientos</span>
+      </button>
+
+      <!-- Floating Plus Add Action -->
+      <button onclick="openTxModal()" class="flex flex-col items-center -mt-8 relative z-50 hover:scale-105 transition cursor-pointer">
+        <div class="w-13 h-13 bg-slate-950 dark:bg-zinc-100 text-white dark:text-slate-950 rounded-full flex items-center justify-center shadow-lg border-4 border-slate-50 dark:border-zinc-950">
+          <span class="material-symbols-outlined text-2xl font-black">add</span>
+        </div>
+      </button>
+
+      <!-- Tab 2: Calendar -->
+      <button onclick="navigateToTab(2)" id="tabBtn2" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 dark:text-zinc-500 cursor-pointer group">
+        <div id="tabIndicator2" class="bg-transparent rounded-full px-5 py-1 transition-all duration-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+        </div>
+        <span class="text-[9px] font-bold uppercase tracking-tighter">Calendario</span>
+      </button>
+
+      <!-- Tab 3: Settings/Ajustes -->
+      <button onclick="navigateToTab(3)" id="tabBtn3" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 dark:text-zinc-500 cursor-pointer group">
+        <div id="tabIndicator3" class="bg-transparent rounded-full px-5 py-1 transition-all duration-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+        </div>
+        <span class="text-[9px] font-bold uppercase tracking-tighter">Ajustes</span>
+      </button>
+    </nav>
+
+    <!-- MODAL 1: ADD TRANSACTION (Slide up dialog) -->
+    <div id="txModal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50 flex items-end justify-center hidden opacity-0 transition-all duration-300">
+      <!-- Slide interior container -->
+      <div id="txModalContent" class="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 rounded-t-3xl p-6 space-y-4 shadow-2xl relative translate-y-full transition-transform duration-300">
+        <div class="flex justify-between items-center mb-1">
+          <h3 class="text-lg font-black tracking-tight" id="txModalTitle">Añadir Nuevo Registro</h3>
+          <button onclick="closeTxModal()" class="material-symbols-outlined p-1 text-slate-400 dark:text-zinc-500 hover:bg-slate-50 rounded-lg dark:hover:bg-zinc-800 cursor-pointer">close</button>
+        </div>
+
+        <form id="txForm" onsubmit="submitTransaction(event)" class="space-y-4">
+          <!-- Big Numeric Input -->
+          <div class="text-center">
+            <label class="text-[10px] font-extrabold uppercase tracking-widest text-[#8E8E93]">Importe del Registro (€)</label>
+            <div class="mt-1 flex items-center justify-center gap-1">
+              <input type="number" step="0.01" required id="formAmount" placeholder="0.00" class="w-48 text-3xl font-black text-center focus:outline-hidden bg-transparent border-b-2 border-slate-200 dark:border-zinc-800 focus:border-emerald-400 transition" autofocus>
+            </div>
+          </div>
+
+          <!-- Income / Expense Segmented Picker -->
+          <div class="flex p-1 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-100 dark:border-zinc-750">
+            <button type="button" onclick="setFormTxType('EXPENSE')" id="formBtnExpense" class="flex-1 py-2 text-center text-xs font-extrabold rounded-lg transition-all bg-rose-500 text-white shadow-xs">GASTO</button>
+            <button type="button" onclick="setFormTxType('INCOME')" id="formBtnIncome" class="flex-1 py-2 text-center text-xs font-bold text-slate-400 dark:text-neutral-400">INGRESO</button>
+          </div>
+
+          <!-- Grid Selector: Category & Date picker icon -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] font-extrabold uppercase tracking-wider text-[#8E8E93]">Categoría</label>
+              <select id="formCategory" class="w-full text-xs font-bold px-3 py-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-750 rounded-xl focus:outline-hidden mt-1 cursor-pointer">
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-extrabold uppercase tracking-wider text-[#8E8E93]">Fecha del Registro</label>
+              <input type="date" id="formDate" required class="w-full text-xs font-semibold px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-750 rounded-xl focus:outline-hidden mt-1">
+            </div>
+          </div>
+
+          <!-- Description Text Box -->
+          <div>
+            <label class="text-[10px] font-extrabold uppercase tracking-wider text-[#8E8E93]">Descripción</label>
+            <input type="text" id="formDescription" placeholder="Ej. Compra semanal, cena..." class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-100 dark:bg-zinc-800 dark:border-zinc-750 rounded-xl focus:outline-hidden mt-1">
+          </div>
+
+          <!-- Is Recurring Switcher Block -->
+          <div class="flex justify-between items-center py-1">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm text-slate-400 dark:text-zinc-500">repeat</span>
+              <span class="text-xs font-bold">¿Es un movimiento recurrente?</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="formIsRecurring" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 dark:bg-zinc-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+
+          <!-- Save CTA -->
+          <button type="submit" class="w-full py-3 bg-slate-950 text-white dark:bg-white dark:text-zinc-950 rounded-2xl text-xs font-black shadow-lg cursor-pointer transition">Guardar Registro Financiero</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 2: ADD GOAL (Form dialog) -->
+    <div id="goalModal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50 flex items-center justify-center hidden opacity-0 transition-opacity">
+      <div id="goalModalInner" class="w-5/6 max-w-sm bg-white dark:bg-zinc-900 border border-slate-150 dark:border-zinc-800 rounded-3xl p-6 space-y-4 shadow-2xl relative transition-transform duration-300 scale-90">
+        <div class="flex justify-between items-center">
+          <h3 class="text-base font-extrabold tracking-tight">Crear Meta de Ahorro</h3>
+          <button onclick="closeGoalModal()" class="material-symbols-outlined p-1 text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg cursor-pointer">close</button>
+        </div>
+
+        <form id="goalForm" onsubmit="submitSavingsGoal(event)" class="space-y-3">
+          <div>
+            <label class="text-[9px] font-black uppercase tracking-wider text-[#8E8E93]">Nombre del Objetivo</label>
+            <input type="text" id="goalFieldName" required placeholder="Ej: Viaje a Japón, Coche nuevo" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-100 dark:bg-zinc-850 dark:border-zinc-750 focus:outline-hidden mt-1 rounded-xl">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9px] font-black uppercase tracking-wider text-[#8E8E93]">Objetivo (€)</label>
+              <input type="number" step="1" required id="goalFieldTarget" placeholder="2000" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-100 dark:bg-zinc-850 dark:border-zinc-750 focus:outline-hidden mt-1 rounded-xl">
+            </div>
+            <div>
+              <label class="text-[9px] font-black uppercase tracking-wider text-[#8E8E93]">Aporte Inicial</label>
+              <input type="number" step="1" required id="goalFieldInitial" placeholder="150" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-100 dark:bg-zinc-850 dark:border-zinc-750 focus:outline-hidden mt-1 rounded-xl">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[9px] font-black uppercase tracking-wider text-[#8E8E93]">Fecha Estimada de Conclusión</label>
+            <input type="date" id="goalFieldDate" required class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-100 dark:bg-zinc-850 dark:border-zinc-750 focus:outline-hidden mt-1 rounded-xl">
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-black tracking-wide shadow-md cursor-pointer transition">Añadir Meta a Mis Finanzas</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sfx beep engine (Quiet & clean) -->
+  <audio id="audioBeep" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-400.wav" preload="auto"></audio>
+
+  <!-- JAVASCRIPT: THE STATE ENGINE (Mvvm Core) -->
+  <script>
+    // Categories List matching Android lists
+    const categories = ["Comida", "Transporte", "Ocio", "Compras", "Estudios", "Suscripciones", "Sueldo", "Beca", "Otros"];
+    
+    // Core state containers
+    let state = {
+      transactions: [],
+      savingsGoals: [],
+      selectedTab: 0,
+      isDarkTheme: false,
+      isSoundEnabled: true,
+      smartAlertsEnabled: true,
+      selectedMonth: new Date().getMonth(), // 0-11
+      selectedYear: new Date().getFullYear(),
+      activeChartTab: 0, // 0: Gasto Diario, 1: Categorias, 2: Tasa Ahorro
+      filterType: "ALL", // "ALL", "INCOME", "EXPENSE"
+      filterCategory: "ALL", // "ALL" or category name
+      searchQuery: "",
+      formTxType: "EXPENSE", // current addition mode
+      calendarCurrentMonth: new Date().getMonth(),
+      calendarCurrentYear: new Date().getFullYear(),
+      selectedDayTimestamp: new Date().setHours(0,0,0,0) // Today
+    };
+
+    // ChartJS single instance
+    let activeChartInstance = null;
+
+    // Relative Date helpers
+    function getRelativeTimestamp(daysOffset, hoursOffset) {
+      let d = new Date();
+      d.setDate(d.getDate() + daysOffset);
+      d.setHours(hoursOffset, 0, 0, 0);
+      return d.getTime();
+    }
+
+    // Default Seed Data
+    const seedData = {
+      transactions: [
+        { id: 1, amount: 2100.0, type: "INCOME", category: "Sueldo", isRecurring: true, date: getRelativeTimestamp(-20, 9), description: "Nómina mensual" },
+        { id: 2, amount: 150.0, type: "INCOME", category: "Beca", isRecurring: true, date: getRelativeTimestamp(-15, 10), description: "Beca de excelencia" },
+        { id: 3, amount: 80.0, type: "INCOME", category: "Otros", isRecurring: false, date: getRelativeTimestamp(-5, 14), description: "Venta Wallapop" },
+        { id: 4, amount: 450.0, type: "EXPENSE", category: "Estudios", isRecurring: true, date: getRelativeTimestamp(-19, 10), description: "Matrícula Universidad" },
+        { id: 5, amount: 65.40, type: "EXPENSE", category: "Comida", isRecurring: false, date: getRelativeTimestamp(-18, 12), description: "Compra semanal Mercadona" },
+        { id: 6, amount: 32.0, type: "EXPENSE", category: "Transporte", isRecurring: false, date: getRelativeTimestamp(-16, 8), description: "Abono transporte mensual" },
+        { id: 7, amount: 15.99, type: "EXPENSE", category: "Suscripciones", isRecurring: true, date: getRelativeTimestamp(-15, 6), description: "Suscripción Netflix" },
+        { id: 8, amount: 12.50, type: "EXPENSE", category: "Ocio", isRecurring: false, date: getRelativeTimestamp(-12, 18), description: "Cine con amigos" },
+        { id: 9, amount: 45.20, type: "EXPENSE", category: "Compras", isRecurring: false, date: getRelativeTimestamp(-10, 15), description: "Zapatillas deportivas" },
+        { id: 10, amount: 55.00, type: "EXPENSE", category: "Comida", isRecurring: false, date: getRelativeTimestamp(-8, 13), description: "Almuerzo familiar" },
+        { id: 11, amount: 11.99, type: "EXPENSE", category: "Suscripciones", isRecurring: true, date: getRelativeTimestamp(-7, 6), description: "Suscripción Spotify Premium" },
+        { id: 12, amount: 120.00, type: "EXPENSE", category: "Otros", isRecurring: false, date: getRelativeTimestamp(-4, 18), description: "Reparación electrodoméstico" },
+        { id: 13, amount: 28.50, type: "EXPENSE", category: "Comida", isRecurring: false, date: getRelativeTimestamp(-3, 20), description: "Cena Pizza" },
+        { id: 14, amount: 15.00, type: "EXPENSE", category: "Ocio", isRecurring: false, date: getRelativeTimestamp(-1, 21), description: "Copas y refrescos" }
+      ],
+      savingsGoals: [
+        { id: 1, name: "Fondo de Emergencia", targetAmount: 5000.0, currentAmount: 1850.0, targetDate: getRelativeTimestamp(180, 12) },
+        { id: 2, name: "Viaje a Japón", targetAmount: 3000.0, currentAmount: 450.0, targetDate: getRelativeTimestamp(270, 12) }
+      ],
+      isDarkTheme: false,
+      isSoundEnabled: true,
+      smartAlertsEnabled: true
+    };
+
+    // Month List
+    const monthNames = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    // Bootstrapping
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      populateSelectDropdowns();
+      createCategoryFilterChips();
+      renderUI();
+      verifyAlertPresence();
+    });
+
+    // Save & Load
+    function saveState() {
+      localStorage.setItem('kuanta_web_state', JSON.stringify({
+        transactions: state.transactions,
+        savingsGoals: state.savingsGoals,
+        isDarkTheme: state.isDarkTheme,
+        isSoundEnabled: state.isSoundEnabled,
+        smartAlertsEnabled: state.smartAlertsEnabled
+      }));
+    }
+
+    function loadState() {
+      let saved = localStorage.getItem('kuanta_web_state');
+      if (saved) {
+        try {
+          let parsed = JSON.parse(saved);
+          state.transactions = parsed.transactions || [];
+          state.savingsGoals = parsed.savingsGoals || [];
+          state.isDarkTheme = parsed.isDarkTheme || false;
+          state.isSoundEnabled = (parsed.isSoundEnabled !== undefined) ? parsed.isSoundEnabled : true;
+          state.smartAlertsEnabled = (parsed.smartAlertsEnabled !== undefined) ? parsed.smartAlertsEnabled : true;
+        } catch (e) {
+          console.error("Error loading localStorage, resetting states", e);
+          initializeDefaultSeedState();
+        }
+      } else {
+        initializeDefaultSeedState();
+      }
+      
+      // Sync switch visual elements at adjustments pane
+      document.getElementById('darkThemeSwitch').checked = state.isDarkTheme;
+      document.getElementById('soundsSwitch').checked = state.isSoundEnabled;
+      document.getElementById('alertsSwitch').checked = state.smartAlertsEnabled;
+      
+      // Trigger theme class application
+      toggleTheme(state.isDarkTheme, false);
+    }
+
+    function initializeDefaultSeedState() {
+      state.transactions = JSON.parse(JSON.stringify(seedData.transactions));
+      state.savingsGoals = JSON.parse(JSON.stringify(seedData.savingsGoals));
+      state.isDarkTheme = seedData.isDarkTheme;
+      state.isSoundEnabled = seedData.isSoundEnabled;
+      state.smartAlertsEnabled = seedData.smartAlertsEnabled;
+      saveState();
+    }
+
+    // Theme Switch
+    function toggleTheme(wantDark, save = true) {
+      state.isDarkTheme = wantDark;
+      if (wantDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      if (save) {
+        saveState();
+        playSound();
+      }
+      // Redraw charts since font/grid colors adapt
+      updateLiveCharts();
+    }
+
+    // Play Haptic feedback Sound Beep
+    function playSound() {
+      if (state.isSoundEnabled) {
+        let sound = document.getElementById('audioBeep');
+        if (sound) {
+          sound.currentTime = 0;
+          sound.volume = 0.2;
+          sound.play().catch(() => {});
+        }
+      }
+    }
+
+    // Dynamic Populates
+    function populateSelectDropdowns() {
+      let select = document.getElementById('formCategory');
+      select.innerHTML = '';
+      categories.forEach(cat => {
+        let opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+
+    function createCategoryFilterChips() {
+      let container = document.getElementById('categoryChipsContainer');
+      container.innerHTML = '';
+      
+      let allCats = ["ALL", ...categories];
+      allCats.forEach(cat => {
+        let btn = document.createElement('button');
+        btn.id = 'chipCat_' + cat;
+        btn.onclick = () => { selectCategoryFilter(cat); };
+        btn.dataset.category = cat;
+        btn.className = "px-3.5 py-1.5 whitespace-nowrap text-xs font-bold rounded-full transition cursor-pointer " + 
+          (state.filterCategory === cat 
+           ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs" 
+           : "bg-slate-100 dark:bg-zinc-900 border border-slate-200/40 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800");
+        btn.textContent = cat === "ALL" ? "Todas" : cat;
+        container.appendChild(btn);
+      });
+    }
+
+    function selectCategoryFilter(cat) {
+      state.filterCategory = cat;
+      playSound();
+      
+      // Update visual styles
+      let chips = document.getElementById('categoryChipsContainer').getElementsByTagName('button');
+      for (let clip of chips) {
+        let cCat = clip.dataset.category;
+        if (cCat === cat) {
+          clip.className = "px-3.5 py-1.5 whitespace-nowrap text-xs font-bold rounded-full transition cursor-pointer bg-slate-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs";
+        } else {
+          clip.className = "px-3.5 py-1.5 whitespace-nowrap text-xs font-bold rounded-full transition cursor-pointer bg-slate-100 dark:bg-zinc-900 border border-slate-200/40 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800";
+        }
+      }
+      applyFilters();
+    }
+
+    // NAVIGATIVE CONTROLLER TABS
+    function navigateToTab(tabIndex) {
+      state.selectedTab = tabIndex;
+      playSound();
+      
+      // Display current view, hide others
+      let views = [
+        document.getElementById('viewInicio'),
+        document.getElementById('viewMovimientos'),
+        document.getElementById('viewCalendario'),
+        document.getElementById('viewAjustes')
+      ];
+      
+      views.forEach((v, idx) => {
+        if (idx === tabIndex) v.classList.remove('hidden');
+        else v.classList.add('hidden');
+      });
+
+      // Update Bottom Bar indicators active highlights
+      for (let idx = 0; idx <= 3; idx++) {
+        let btn = document.getElementById('tabBtn' + idx);
+        let indicator = document.getElementById('tabIndicator' + idx);
+        if (idx === tabIndex) {
+          btn.className = "flex flex-col items-center gap-1 text-slate-900 dark:text-white group cursor-pointer";
+          indicator.className = "bg-slate-950 text-white rounded-full px-5 py-1 transition-all duration-200 dark:bg-white dark:text-zinc-900 flex items-center justify-center";
+        } else {
+          btn.className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 dark:text-zinc-500 cursor-pointer group";
+          indicator.className = "bg-transparent rounded-full px-5 py-1 transition-all duration-200 flex items-center justify-center";
+        }
+      }
+
+      // Special Tab rendering hooks
+      if (tabIndex === 0) {
+        updateDashboardView();
+      } else if (tabIndex === 1) {
+        applyFilters();
+      } else if (tabIndex === 2) {
+        renderCalendarUI();
+      } else if (tabIndex === 3) {
+        renderSavingsGoalsUI();
+      }
+    }
+
+    // DYNAMIC METRICS SUMMARY ENGINE
+    function calculateMonthlySummary() {
+      // Filter current selected month-year transactions
+      let monthTxs = state.transactions.filter(tx => {
+        let d = new Date(tx.date);
+        return d.getMonth() === state.selectedMonth && d.getFullYear() === state.selectedYear;
+      });
+
+      let incomes = monthTxs.filter(tx => tx.type === "INCOME").reduce((acc, current) => acc + current.amount, 0);
+      let expenses = monthTxs.filter(tx => tx.type === "EXPENSE").reduce((acc, current) => acc + current.amount, 0);
+      
+      let balance = incomes - expenses;
+      let netSaving = balance > 0 ? balance : 0.0;
+      let savingRate = incomes > 0 ? (netSaving / incomes) : 0.05;
+
+      return {
+        incomes,
+        expenses,
+        balance,
+        netSaving,
+        savingRate
+      };
+    }
+
+    // UPDATE INICIO SCREEN (DASHBOARD)
+    function updateDashboardView() {
+      let now = new Date();
+      // Update Monthly Title labels
+      document.getElementById('topMonthYearLabel').textContent = "Resumen de " + monthNames[state.selectedMonth] + " " + state.selectedYear;
+
+      let summary = calculateMonthlySummary();
+
+      // Update hero net metrics
+      document.getElementById('heroSavingsVal').textContent = "+" + summary.netSaving.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+      document.getElementById('savingRateBadge').textContent = Math.round(summary.savingRate * 100) + "% Tasa de Ahorro";
+      
+      // Elegant micro status phrase
+      let statusPhrase = "Generando salud en tus finanzas";
+      if (summary.savingRate > 0.4) {
+        statusPhrase = "🎉 ¡Nivel de oro de ahorro! Enhorabuena";
+      } else if (summary.savingRate > 0.2) {
+        statusPhrase = "📈 Excelente ritmo de ahorro mensual";
+      } else if (summary.savingRate <= 0) {
+        statusPhrase = "⚠️ Alerta: Tus gastos superan los ingresos";
+      }
+      document.getElementById('heroStatusText').textContent = statusPhrase;
+
+      // Update quick metrics
+      document.getElementById('statBalance').textContent = summary.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + " €";
+      document.getElementById('statIncome').textContent = "+" + summary.incomes.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + " €";
+      document.getElementById('statExpenses').textContent = "-" + summary.expenses.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + " €";
+
+      // Populate brief transactions feed
+      let briefContainer = document.getElementById('briefTransactionsList');
+      briefContainer.innerHTML = '';
+
+      // Get last 4 chronologically
+      let sorted = [...state.transactions].sort((a,b) => b.date - a.date).slice(0, 4);
+      if (sorted.length === 0) {
+        briefContainer.innerHTML = `
+          <div class="p-4 border border-dashed border-slate-200 dark:border-zinc-800 rounded-xl text-center text-xs text-slate-400">
+            Ningún movimiento registrado todavía. Pulsa '+' para añadir.
+          </div>`;
+      } else {
+        sorted.forEach(tx => {
+          briefContainer.appendChild(createTxRowElement(tx));
+        });
+      }
+
+      // Reload interactive charts
+      updateLiveCharts();
+    }
+
+    // GENERATE TRANSACTION TILE COMPONENT
+    function createTxRowElement(tx) {
+      let div = document.createElement('div');
+      div.className = "flex items-center justify-between p-3.5 bg-slate-50/65 border border-slate-100 hover:bg-slate-100/50 dark:bg-zinc-900/40 dark:border-zinc-800/60 dark:hover:bg-zinc-855 rounded-2xl shadow-xs transition duration-150";
+      
+      // Determine Icon based on category or type
+      let icon = "payments";
+      if (tx.type === "INCOME") {
+        icon = tx.category === "Sueldo" ? "wallet" : "handshake";
+      } else {
+        switch(tx.category) {
+          case "Comida": icon = "local_mall"; break;
+          case "Transporte": icon = "directions_transit"; break;
+          case "Ocio": icon = "celebration"; break;
+          case "Compras": icon = "shopping_bag"; break;
+          case "Estudios": icon = "school"; break;
+          case "Suscripciones": icon = "subscriptions"; break;
+          default: icon = "receipt_long";
+        }
+      }
+
+      let date = new Date(tx.date);
+      let dateString = date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+
+      div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 border border-slate-200/40 text-slate-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-300">
+            <span class="material-symbols-outlined text-[18px]">${icon}</span>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-800 dark:text-neutral-200">${escapeHTML(tx.description || tx.category)}</h4>
+            <p class="text-[9px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wide">
+              ${tx.category} • ${dateString} ${tx.isRecurring ? '• <span class="text-emerald-500">Recurrente</span>' : ''}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-black ${tx.type === 'INCOME' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}">
+            ${tx.type === 'INCOME' ? '+' : '-'}${tx.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+          </span>
+          <button onclick="promptDeleteTransaction(${tx.id})" class="material-symbols-outlined text-sm text-slate-300 hover:text-rose-500 p-1 rounded-sm cursor-pointer transition">delete</button>
+        </div>
+      `;
+      return div;
+    }
+
+    // SEARCH FILTERS LOGIC (MOVIMIENTOS)
+    function setTxFilterType(type) {
+      state.filterType = type;
+      playSound();
+      
+      let allBtn = document.getElementById('filterTxAll');
+      let incBtn = document.getElementById('filterTxIncome');
+      let expBtn = document.getElementById('filterTxExpense');
+
+      // Restyle tabs
+      let activeClass = "flex-1 py-1.5 rounded-lg text-xs font-extrabold transition bg-white shadow-xs text-slate-900 dark:bg-zinc-800 dark:text-white";
+      let inactiveClass = "flex-1 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 transition";
+
+      allBtn.className = type === 'ALL' ? activeClass : inactiveClass;
+      incBtn.className = type === 'INCOME' ? activeClass : inactiveClass;
+      expBtn.className = type === 'EXPENSE' ? activeClass : inactiveClass;
+
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let q = document.getElementById('searchTxInput').value.toLowerCase();
+      state.searchQuery = q;
+
+      let filtered = state.transactions.filter(tx => {
+        // Text Match
+        let matchText = tx.description.toLowerCase().includes(q) || tx.category.toLowerCase().includes(q);
+        // Type match
+        let matchType = state.filterType === 'ALL' || tx.type === state.filterType;
+        // Category match
+        let matchCat = state.filterCategory === 'ALL' || tx.category === state.filterCategory;
+
+        return matchText && matchType && matchCat;
+      });
+
+      // Sort Chronologically descending
+      filtered.sort((a,b) => b.date - a.date);
+
+      let container = document.getElementById('fullTxListContainer');
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-10 border border-dashed border-slate-200 dark:border-zinc-800 rounded-3xl text-center text-xs text-slate-400">
+            Ningún movimiento coincide con los filtros aplicados
+          </div>`;
+      } else {
+        filtered.forEach(tx => {
+          container.appendChild(createTxRowElement(tx));
+        });
+      }
+    }
+
+    // ACTIONS AND DELETES
+    function promptDeleteTransaction(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar este movimiento financiero?")) {
+        state.transactions = state.transactions.filter(tx => tx.id !== id);
+        saveState();
+        playSound();
+        verifyAlertPresence();
+        renderUI();
+      }
+    }
+
+    // RENDER CALENDAR SCREEN
+    function navigateCalendarMonth(offset) {
+      state.calendarCurrentMonth += offset;
+      if (state.calendarCurrentMonth > 11) {
+        state.calendarCurrentMonth = 0;
+        state.calendarCurrentYear++;
+      } else if (state.calendarCurrentMonth < 0) {
+        state.calendarCurrentMonth = 11;
+        state.calendarCurrentYear--;
+      }
+      playSound();
+      renderCalendarUI();
+    }
+
+    function renderCalendarUI() {
+      let titleLabel = document.getElementById('calendarTitleLabel');
+      titleLabel.textContent = monthNames[state.calendarCurrentMonth].toUpperCase() + " " + state.calendarCurrentYear;
+
+      let grid = document.getElementById('calendarDaysGrid');
+      grid.innerHTML = '';
+
+      // Days of month calculations
+      let firstDayIndex = new Date(state.calendarCurrentYear, state.calendarCurrentMonth, 1).getDay(); // Sun is 0, Mon is 1
+      // Re-map index so Monday is 0
+      let adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+
+      let daysInMonth = new Date(state.calendarCurrentYear, state.calendarCurrentMonth + 1, 0).getDate();
+      let prevMonthDays = new Date(state.calendarCurrentYear, state.calendarCurrentMonth, 0).getDate();
+
+      // Render Empty leading boxes of past month
+      for (let i = adjustedFirstDay - 1; i >= 0; i--) {
+        let prevDay = prevMonthDays - i;
+        let cell = document.createElement('div');
+        cell.className = "p-2 text-[11px] text-slate-300 dark:text-zinc-700 font-medium pointer-events-none select-none";
+        cell.textContent = prevDay;
+        grid.appendChild(cell);
+      }
+
+      let today = new Date();
+      today.setHours(0,0,0,0);
+
+      // Render Current Month Days
+      for (let d = 1; d <= daysInMonth; d++) {
+        let cellDate = new Date(state.calendarCurrentYear, state.calendarCurrentMonth, d);
+        cellDate.setHours(0,0,0,0);
+        let time = cellDate.getTime();
+
+        let isSelected = time === state.selectedDayTimestamp;
+        let isToday = time === today.getTime();
+
+        // Check if day has transactions
+        let dayHasTx = state.transactions.some(tx => {
+          let txD = new Date(tx.date);
+          txD.setHours(0,0,0,0);
+          return txD.getTime() === time;
+        });
+
+        let cell = document.createElement('div');
+        cell.onclick = () => { selectCalendarDay(time); };
+        cell.className = "p-1.5 relative rounded-xl text-xs font-extrabold flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-800 transition " +
+          (isSelected 
+            ? "bg-slate-900 border border-slate-950 text-white dark:bg-white dark:border-white dark:text-zinc-950 shadow-sm" 
+            : (isToday ? "border border-emerald-400 text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-350"));
+        
+        // Inner day content
+        cell.innerHTML = `
+          <span>${d}</span>
+          ${dayHasTx ? `<span class="w-1 h-1 bg-emerald-500 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-300' : ''}"></span>` : '<span class="w-1 h-1 bg-transparent block mt-0.5"></span>'}
+        `;
+
+        grid.appendChild(cell);
+      }
+
+      // Load transactions for the selected day
+      renderCalendarSelectedDayList();
+    }
+
+    function selectCalendarDay(timestamp) {
+      state.selectedDayTimestamp = timestamp;
+      playSound();
+      
+      // Re-trigger grid highlighting
+      renderCalendarUI();
+    }
+
+    function renderCalendarSelectedDayList() {
+      let date = new Date(state.selectedDayTimestamp);
+      let dayTitle = document.getElementById('selectedCalendarDayTitle');
+      dayTitle.textContent = "Movimientos del " + date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      // Gather day transactions
+      let dayTxs = state.transactions.filter(tx => {
+        let txD = new Date(tx.date);
+        txD.setHours(0,0,0,0);
+        return txD.getTime() === state.selectedDayTimestamp;
+      });
+
+      let container = document.getElementById('calendarDayTxContainer');
+      container.innerHTML = '';
+
+      if (dayTxs.length === 0) {
+        container.innerHTML = `
+          <div class="p-5 border border-dashed border-slate-250 dark:border-zinc-850 rounded-2xl text-center text-[11px] text-slate-400 dark:text-zinc-500">
+            No se registra ningún movimiento para este día. Haz clic en '+' para añadir uno en cualquier momento.
+          </div>`;
+      } else {
+        dayTxs.forEach(tx => {
+          container.appendChild(createTxRowElement(tx));
+        });
+      }
+    }
+
+    // RENDER SAVINGS GOALS (SETTINGS)
+    function renderSavingsGoalsUI() {
+      let container = document.getElementById('savingsGoalsListContainer');
+      container.innerHTML = '';
+
+      if (state.savingsGoals.length === 0) {
+        container.innerHTML = `
+          <div class="p-5 border border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl text-center text-xs text-slate-400">
+            No se han definido metas de ahorro activas. ¡Comienza una hoy para guiar tus recursos!
+          </div>`;
+      } else {
+        state.savingsGoals.forEach(goal => {
+          let progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) : 0;
+          let percent = Math.min(Math.round(progress * 100), 100);
+
+          let div = document.createElement('div');
+          div.className = "bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-4 rounded-2xl space-y-2.5 shadow-xs relative overflow-hidden transition-colors";
+          div.innerHTML = `
+            <div class="flex justify-between items-center bg-transparent">
+              <div>
+                <h4 class="text-xs font-extrabold text-slate-800 dark:text-neutral-200">${escapeHTML(goal.name)}</h4>
+                <p class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mt-0.5">Ahorrado: ${goal.currentAmount.toLocaleString('es-ES')} € / Objetivo: ${goal.targetAmount.toLocaleString('es-ES')} €</p>
+              </div>
+              <div class="flex items-center gap-1.5 bg-transparent">
+                <span class="text-xs font-black text-emerald-500">${percent}%</span>
+                <button onclick="promptDeleteGoal(${goal.id})" class="material-symbols-outlined text-sm text-slate-300 hover:text-rose-500 p-0.5 rounded cursor-pointer transition">delete</button>
+              </div>
+            </div>
+            
+            <!-- Progress Line Indicator -->
+            <div class="w-full bg-slate-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-emerald-400 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    function promptDeleteGoal(id) {
+      if (confirm("¿Seguro que deseas dar de baja o eliminar esta meta de ahorro?")) {
+        state.savingsGoals = state.savingsGoals.filter(goal => goal.id !== id);
+        saveState();
+        playSound();
+        renderSavingsGoalsUI();
+      }
+    }
+
+    // ADD TRANSACTION CONTROLS MODAL
+    function openTxModal() {
+      // Pre-set input date to today's date
+      let now = new Date();
+      let year = now.getFullYear();
+      let month = String(now.getMonth() + 1).padStart(2, '0');
+      let day = String(now.getDate()).padStart(2, '0');
+      document.getElementById('formDate').value = `${year}-${month}-${day}`;
+      
+      // Clean inputs
+      document.getElementById('formAmount').value = '';
+      document.getElementById('formDescription').value = '';
+      document.getElementById('formIsRecurring').checked = false;
+
+      // Reset segmented
+      setFormTxType("EXPENSE");
+
+      let modal = document.getElementById('txModal');
+      let select = document.getElementById('formCategory');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.add('opacity-100');
+        document.getElementById('txModalContent').classList.remove('translate-y-full');
+      }, 50);
+      playSound();
+    }
+
+    function closeTxModal() {
+      let modal = document.getElementById('txModal');
+      document.getElementById('txModalContent').classList.add('translate-y-full');
+      modal.classList.remove('opacity-100');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+      playSound();
+    }
+
+    function setFormTxType(type) {
+      state.formTxType = type;
+      let expBtn = document.getElementById('formBtnExpense');
+      let incBtn = document.getElementById('formBtnIncome');
+      
+      if (type === 'EXPENSE') {
+        expBtn.className = "flex-1 py-2 text-center text-xs font-extrabold rounded-lg transition-all bg-rose-500 text-white shadow-xs";
+        incBtn.className = "flex-1 py-2 text-center text-xs font-bold text-slate-400 dark:text-neutral-400";
+      } else {
+        incBtn.className = "flex-1 py-2 text-center text-xs font-extrabold rounded-lg transition-all bg-emerald-500 text-white shadow-xs";
+        expBtn.className = "flex-1 py-2 text-center text-xs font-bold text-slate-400 dark:text-neutral-400";
+      }
+      playSound();
+    }
+
+    function submitTransaction(e) {
+      e.preventDefault();
+
+      let amountVal = parseFloat(document.getElementById('formAmount').value);
+      let catVal = document.getElementById('formCategory').value;
+      let dateVal = document.getElementById('formDate').value;
+      let descVal = document.getElementById('formDescription').value.trim();
+      let recVal = document.getElementById('formIsRecurring').checked;
+
+      if (isNaN(amountVal) || amountVal <= 0) {
+        alert("Por favor, introduce un importe numérico válido superior a cero.");
+        return;
+      }
+
+      // Convert date string to timestamp at Local midnight
+      let dParts = dateVal.split('-');
+      let dateObj = new Date(dParts[0], dParts[1] - 1, dParts[2], 12, 0, 0); // At noon to avoid timezone shifts
+      let targetTime = dateObj.getTime();
+
+      let nextId = state.transactions.length > 0 ? (Math.max(...state.transactions.map(t => t.id)) + 1) : 1;
+      
+      let newTx = {
+        id: nextId,
+        amount: amountVal,
+        type: state.formTxType,
+        category: catVal,
+        isRecurring: recVal,
+        date: targetTime,
+        description: descVal || catVal
+      };
+
+      state.transactions.push(newTx);
+      
+      // Match current transaction date for calendar tracking
+      state.selectedDayTimestamp = new Date(targetTime).setHours(0,0,0,0);
+      
+      // Check for over-spending alerts threshold if spending
+      if (state.formTxType === "EXPENSE" && state.smartAlertsEnabled) {
+        verifySmartAlertOnAddition(amountVal);
+      } else {
+        verifyAlertPresence();
+      }
+
+      saveState();
+      playSound();
+      closeTxModal();
+      renderUI();
+    }
+
+    // INTELLIGENT ALERTS SYSTEM
+    function toggleAlertsSupport(wantOn) {
+      state.smartAlertsEnabled = wantOn;
+      saveState();
+      playSound();
+      verifyAlertPresence();
+    }
+
+    function verifySmartAlertOnAddition(spentAmount) {
+      // Calculate historical average spent on the last 7 items
+      let lastSpends = state.transactions.filter(t => t.type === "EXPENSE");
+      if (lastSpends.length >= 2) {
+        let sum = lastSpends.reduce((acc, current) => acc + current.amount, 0);
+        let average = sum / lastSpends.length;
+        if (spentAmount > average * 1.5) {
+          // Launch simulated modal/alert notice
+          setTimeout(() => {
+            alert(`⚠️ ALERTA DE CONFIGURACIÓN INTELIGENTE:\nEl gasto recién añadido (${spentAmount} €) supera significativamente tu media histórica de gastos (${average.toFixed(2)} €). ¡Cuidado con el presupuesto!`);
+            document.getElementById('alertDot').classList.remove('hidden');
+          }, 350);
+          return;
+        }
+      }
+      verifyAlertPresence();
+    }
+
+    function verifyAlertPresence() {
+      // If savings rate <= 5% in current month, trigger bell warning
+      let summary = calculateMonthlySummary();
+      let alertDot = document.getElementById('alertDot');
+      if (summary.savingRate < 0.05) {
+        alertDot.classList.remove('hidden');
+      } else {
+        alertDot.classList.add('hidden');
+      }
+    }
+
+    // Attach click feedback to AlertIndicator bell
+    document.getElementById('alertIndicatorBtn').addEventListener('click', () => {
+      let summary = calculateMonthlySummary();
+      playSound();
+      if (summary.savingRate < 0.05) {
+        alert("⚠️ ATENCIÓN PREMIUM DE FINANZAS:\nTus ahorros guardados este mes están por debajo de tu recomendación mínima de seguridad (5% de tasa de ahorro). Te recomendamos revisar movimientos prescindibles.");
+      } else {
+        alert("✅ FINANZAS SALUDABLES:\nNo tienes alertas críticas pendientes. ¡Sigue así, estás construyendo bienestar!");
+      }
+    });
+
+    // ADD GOAL CONTROLS MODAL
+    function openGoalModal() {
+      document.getElementById('goalFieldName').value = '';
+      document.getElementById('goalFieldTarget').value = '';
+      document.getElementById('goalFieldInitial').value = '';
+      
+      // Target date default (6 months)
+      let defaultDate = new Date();
+      defaultDate.setMonth(defaultDate.getMonth() + 6);
+      let year = defaultDate.getFullYear();
+      let month = String(defaultDate.getMonth() + 1).padStart(2, '0');
+      let day = String(defaultDate.getDate()).padStart(2, '0');
+      document.getElementById('goalFieldDate').value = `${year}-${month}-${day}`;
+
+      let modal = document.getElementById('goalModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.add('opacity-100');
+        document.getElementById('goalModalInner').classList.add('scale-100');
+        document.getElementById('goalModalInner').classList.remove('scale-90');
+      }, 50);
+      playSound();
+    }
+
+    function closeGoalModal() {
+      let modal = document.getElementById('goalModal');
+      document.getElementById('goalModalInner').classList.add('scale-90');
+      document.getElementById('goalModalInner').classList.remove('scale-100');
+      modal.classList.remove('opacity-100');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+      playSound();
+    }
+
+    function submitSavingsGoal(e) {
+      e.preventDefault();
+
+      let nameVal = document.getElementById('goalFieldName').value.trim();
+      let targetVal = parseFloat(document.getElementById('goalFieldTarget').value);
+      let initVal = parseFloat(document.getElementById('goalFieldInitial').value);
+      let dateVal = document.getElementById('goalFieldDate').value;
+
+      if (isNaN(targetVal) || targetVal <= 0 || isNaN(initVal) || initVal < 0) {
+        alert("Introduce importes numéricos válidos superiores a cero.");
+        return;
+      }
+
+      let dParts = dateVal.split('-');
+      let dateObj = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+      
+      let nextId = state.savingsGoals.length > 0 ? (Math.max(...state.savingsGoals.map(g => g.id)) + 1) : 1;
+
+      let newGoal = {
+        id: nextId,
+        name: nameVal,
+        targetAmount: targetVal,
+        currentAmount: initVal,
+        targetDate: dateObj.getTime()
+      };
+
+      state.savingsGoals.push(newGoal);
+      saveState();
+      playSound();
+      closeGoalModal();
+      
+      // Re-render
+      renderSavingsGoalsUI();
+    }
+
+    // ACTIONS BACKUP SYSTEM & DATA RESET
+    function exportToCSV() {
+      playSound();
+      if (state.transactions.length === 0) {
+        alert("No se registran transacciones disponibles para exportar.");
+        return;
+      }
+
+      let csvContent = "ID,Fecha,Tipo,Categoria,Importe,EsRecurrente,Descripcion\n";
+      state.transactions.forEach(t => {
+        let d = new Date(t.date);
+        let dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        let cleanDesc = (t.description || "").replace(/,/g, ';').replace(/\n/g, ' ');
+        csvContent += `${t.id},${dStr},${t.type},${t.category},${t.amount},${t.isRecurring},${cleanDesc}\n`;
+      });
+
+      // Simple click anchor download action
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = `kuanta_export_${new Date().toISOString().substring(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function restoreSeedData() {
+      if (confirm("¿Estás seguro de que quieres restablecer todos los movimientos y metas con los datos simulados iniciales? Se borrarán tus cambios.")) {
+        initializeDefaultSeedState();
+        playSound();
+        renderUI();
+        if (state.selectedTab === 3) renderSavingsGoalsUI();
+        alert("Valores iniciales listados correctamente.");
+      }
+    }
+
+    // CHARTS CONTROLLER STATE (Tab switches inside dashboard)
+    function changeChartTab(idx) {
+      state.activeChartTab = idx;
+      playSound();
+
+      // CSS Classes matching minimal selections
+      for (let i = 0; i <= 2; i++) {
+        let btn = document.getElementById('btnChart' + i);
+        if (i === idx) {
+          btn.className = "flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition-all text-slate-800 bg-white shadow-xs dark:text-white dark:bg-zinc-850";
+        } else {
+          btn.className = "flex-1 py-1 px-1.5 rounded-lg text-[10px] font-bold transition-all text-slate-400 hover:text-slate-600 dark:text-zinc-400 dark:hover:text-zinc-250";
+        }
+      }
+
+      updateLiveCharts();
+    }
+
+    function updateLiveCharts() {
+      let canvas = document.getElementById('liveChartJsObject');
+      if (!canvas) return;
+
+      // Safe destroy existing charts instance to avoid memory leak overlays on refresh
+      if (activeChartInstance) {
+        activeChartInstance.destroy();
+      }
+
+      let ctx = canvas.getContext('2d');
+      let selectColorTheme = state.isDarkTheme ? "#FFFFFF" : "#1E293B";
+      let gridColorTheme = state.isDarkTheme ? "#27272A" : "#F1F5F9";
+
+      if (state.activeChartTab === 0) {
+        // TAB 0: HISTORIC SPENDING FOR THE LAST 7 ACTIVE DAYS OF TRANSACTION DATES
+        // Group expenses by date
+        let spends = state.transactions.filter(t => t.type === "EXPENSE");
+        let dateSums = {};
+        
+        spends.forEach(t => {
+          let dateStr = new Date(t.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+          dateSums[dateStr] = (dateSums[dateStr] || 0) + t.amount;
+        });
+
+        // Resolve last 7 dates ordered chronologically
+        let labels = [];
+        let data = [];
+        let todayVal = new Date();
+        
+        for (let i = 6; i >= 0; i--) {
+          let cTime = new Date();
+          cTime.setDate(todayVal.getDate() - i);
+          let label = cTime.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+          labels.push(label);
+          data.push(dateSums[label] || 0);
+        }
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Gastado (€)',
+              data: data,
+              borderColor: '#FF3B30',
+              backgroundColor: 'rgba(255, 59, 48, 0.08)',
+              borderWidth: 2,
+              pointBackgroundColor: '#FF3B30',
+              fill: true,
+              tension: 0.35
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: gridColorTheme }, ticks: { color: selectColorTheme, font: { size: 9, family: 'Plus Jakarta Sans' } } },
+              y: { grid: { color: gridColorTheme }, ticks: { color: selectColorTheme, font: { size: 9 } } }
+            }
+          }
+        });
+
+      } else if (state.activeChartTab === 1) {
+        // TAB 1: CATEGORY BREAKDOWN IN PIE DOUGHNUT
+        let expenses = state.transactions.filter(t => t.type === "EXPENSE");
+        let sums = {};
+        expenses.forEach(t => {
+          sums[t.category] = (sums[t.category] || 0) + t.amount;
+        });
+
+        let labels = Object.keys(sums);
+        let data = Object.values(sums);
+        
+        if (labels.length === 0) {
+          labels = ["Sin gastos"];
+          data = [1];
+        }
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: ['#FF9500', '#007AFF', '#FF3B30', '#34C759', '#AF52DE', '#5856D6', '#FF2D55', '#4CD964', '#5AC8FA'],
+              borderWidth: state.isDarkTheme ? 2 : 1,
+              borderColor: state.isDarkTheme ? '#0F0F10' : '#FFFFFF'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: { color: selectColorTheme, font: { size: 8, family: 'Plus Jakarta Sans', weight: 'bold' } }
+              }
+            },
+            cutout: '65%'
+          }
+        });
+
+      } else if (state.activeChartTab === 2) {
+        // TAB 2: HISTORIC EVOLUTION OF SAVINGS OR TASA AHORRO BY MONTHS
+        let labels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        // Calculate dynamic values for each month in the current year
+        let selectYear = state.selectedYear;
+        let dataRates = labels.map((l, idx) => {
+          let monthTxs = state.transactions.filter(tx => {
+            let d = new Date(tx.date);
+            return d.getMonth() === idx && d.getFullYear() === selectYear;
+          });
+          let inc = monthTxs.filter(tx => tx.type === "INCOME").reduce((acc, current) => acc + current.amount, 0);
+          let exp = monthTxs.filter(tx => tx.type === "EXPENSE").reduce((acc, current) => acc + current.amount, 0);
+          let saving = inc - exp;
+          if (inc === 0) return 0;
+          return Math.max(0, Math.round(((inc - exp) / inc) * 100));
+        });
+
+        activeChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Tasa %',
+              data: dataRates,
+              backgroundColor: '#34C759',
+              borderRadius: 6,
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: selectColorTheme, font: { size: 9, family: 'Plus Jakarta Sans' } } },
+              y: { grid: { color: gridColorTheme }, ticks: { color: selectColorTheme, font: { size: 9 } } }
+            }
+          }
+        });
+      }
+    }
+
+    // MAIN RE-RENDER HOOK
+    function renderUI() {
+      // Re-load viewports depending on active index
+      if (state.selectedTab === 0) updateDashboardView();
+      else if (state.selectedTab === 1) applyFilters();
+      else if (state.selectedTab === 2) renderCalendarUI();
+      else if (state.selectedTab === 3) {
+        renderSavingsGoalsUI();
+      }
+    }
+
+    // XSS string defense
+    function escapeHTML(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
