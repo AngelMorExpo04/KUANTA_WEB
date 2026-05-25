@@ -1,4 +1,4 @@
-# Kuanta - Gestión Financiera Inteligente 📊✨
+# Kuanta - Gestión Financiera Inteligente 
 
 Bienvenido a **Kuanta**, una solución integral de gestión y control de finanzas personales diseñada bajo el concepto de **Clean Minimalism**.
 
@@ -10,7 +10,7 @@ Ambas implementaciones conviven de manera armoniosa en el mismo repositorio, per
 
 ---
 
-## 🚀 Despliegue en GitHub Pages
+## Despliegue en GitHub Pages
 
 Convertir este repositorio en una página web accesible desde cualquier celular o navegador de escritorio es sumamente sencillo. Sigue estos pasos rápidos:
 
@@ -29,7 +29,7 @@ Convertir este repositorio en una página web accesible desde cualquier celular 
 
 ---
 
-## 📱 Características de la Web App (`index.html`)
+## Características de la Web App (`index.html`)
 
 Nuestra versión web replica al 100% de manera fiel las capacidades del software móvil nativo:
 
@@ -47,11 +47,9 @@ Nuestra versión web replica al 100% de manera fiel las capacidades del software
 
 ---
 
-## 🛠️ Estructura del Proyecto
+## Estructura del Proyecto
 
 - `index.html` — Punto de entrada del cliente web optimizado para dispositivos móviles y escritorio.
-- `app/` — Código fuente nativo de la aplicación para Android.
-- `build.gradle.kts` — Scripts de construcción del motor compilador de Android Gradle.
 
 ---
 
